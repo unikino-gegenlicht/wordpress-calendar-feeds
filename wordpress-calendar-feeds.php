@@ -82,6 +82,7 @@ add_action( "parse_request", function ( WP $wp ) {
 		$content = ggl_cf__generate_feed_content();
 output:
 		header("Content-Type: text/calendar");
+		header('Content-Disposition: attachment; filename="Unikino GEGENLICHT.ics"');
 		echo $content;
 		die();
 	}
