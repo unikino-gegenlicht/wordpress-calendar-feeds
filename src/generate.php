@@ -9,8 +9,10 @@ use Eluceo\iCal\Domain\Entity\TimeZone;
 use Eluceo\iCal\Domain\ValueObject\EmailAddress;
 use Eluceo\iCal\Domain\ValueObject\Location;
 use Eluceo\iCal\Domain\ValueObject\Organizer;
+use Eluceo\iCal\Domain\ValueObject\TimeSpan;
 use Eluceo\iCal\Domain\ValueObject\UniqueIdentifier;
 use Eluceo\iCal\Domain\ValueObject\Uri;
+use Eluceo\iCal\Domain\ValueObject\DateTime;
 use Eluceo\iCal\Presentation\Factory\CalendarFactory;
 
 
@@ -57,6 +59,13 @@ function ggl_cf__generate_single( WP_Post $post, bool $public = true ): Event|nu
 
 	$organizer = new Organizer( new EmailAddress( "noreply@gegenlicht.net" ), "Unikino GEGENLICHT" );
 	$event->setOrganizer( $organizer );
+
+	$running_time = ggl_get_running_time($post);
+
+	$event->setOccurrence(new TimeSpan(
+		new DateTime(ggl_get_starting_time($post), true),
+		new DateTime(ggl_get_starting_time($post)->add(new DateInterval("PT{$running_time}M")), true)
+	));
 
 	return $event;
 }
