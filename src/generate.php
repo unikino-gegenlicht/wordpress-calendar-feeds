@@ -2,18 +2,21 @@
 
 defined( 'ABSPATH' ) || exit();
 
+require_once "CalendarFactory.php";
+
 use Base64Url\Base64Url;
 use Eluceo\iCal\Domain\Entity\Calendar;
 use Eluceo\iCal\Domain\Entity\Event;
 use Eluceo\iCal\Domain\Entity\TimeZone;
 use Eluceo\iCal\Domain\ValueObject\EmailAddress;
+use Eluceo\iCal\Domain\ValueObject\GeographicPosition;
 use Eluceo\iCal\Domain\ValueObject\Location;
 use Eluceo\iCal\Domain\ValueObject\Organizer;
 use Eluceo\iCal\Domain\ValueObject\TimeSpan;
 use Eluceo\iCal\Domain\ValueObject\UniqueIdentifier;
 use Eluceo\iCal\Domain\ValueObject\Uri;
 use Eluceo\iCal\Domain\ValueObject\DateTime;
-use Eluceo\iCal\Presentation\Factory\CalendarFactory;
+use UnikinoGegenlicht\WordpressCalendarFeeds\CalendarFactory;
 
 
 function ggl_cf__generate_access_token( WP_User $user ): string {
@@ -51,9 +54,13 @@ function ggl_cf__generate_single( WP_Post $post, bool $public = true ): Event|nu
 
 	$post_location = ggl_get_assigned_location( $post );
 	$location_schema  = ggl_get_location_schema_markup_data( $post_location );
+	$latitude    = get_post_meta( $post_location->ID, "lat", true );
+	$longitude   = get_post_meta( $post_location->ID, "long", true );
+
+
 	$address_data  = $location_schema["address"];
-	$address       = "$address_data[streetAddress], $address_data[postalCode] $address_data[locality]";
-	$location      = new Location( $address, $location_schema["name"] );
+	$address       = "$location_schema[name] $address_data[streetAddress], $address_data[postalCode] $address_data[locality]";
+	$location      = new Location( $address, $location_schema["name"] )->withGeographicPosition(new GeographicPosition($latitude, $longitude));
 
 	$event->setLocation( $location );
 
@@ -83,7 +90,6 @@ function ggl_cf__generate_feed_content( bool $public = true ): string {
 
 	$calendar = new Calendar( $events );
 	$calendar->addTimeZone( new TimeZone( "Europe/Berlin" ) );
-	$calendar->setProductIdentifier( "Unikino GEGENLICHT" );
 
 	return new CalendarFactory()->createCalendar( $calendar );
 }
