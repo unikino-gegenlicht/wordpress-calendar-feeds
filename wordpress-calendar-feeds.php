@@ -72,6 +72,8 @@ add_action( "parse_request", function ( WP $wp ) {
 			goto output;
 		}
 
+		WP_Application_Passwords::record_application_password_usage($user->ID, $password_uuid);
+
 		add_filter("ggl__show_full_details", function (bool $display_details, WP_Post $post) {
 			return true;
 		}, 80, 2);
