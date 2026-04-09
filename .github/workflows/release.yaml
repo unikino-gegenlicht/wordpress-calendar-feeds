@@ -1,0 +1,90 @@
+name: Release Plugin
+on: push
+
+jobs:
+  create-archive:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: wp-cli, composer
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Create License Artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: licensing-info
+          path: LICENSE
+
+      - name: Set outputs
+        id: vars
+        env:
+          VERSION: ${{ case( startsWith(github.ref, 'refs/heads/'), steps.vars.outputs.sha_short,  startsWith(github.ref, 'refs/tags/'), github.ref_name, 'unknown' ) }}
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Create Directory Structure and Archive
+        shell: bash
+        env:
+          VERSION: ${{ case( startsWith(github.ref, 'refs/heads/'), steps.vars.outputs.sha_short,  startsWith(github.ref, 'refs/tags/'), steps.vars.outputs.version, 'unknown' ) }}
+        run: |
+          sed -i 's/GGL_PLUGIN_VERSION/${{ env.VERSION }}/g' wordpress-calendar-feeds.php
+          rm LICENSE
+          rm README.md
+          mkdir calendar-feeds
+          composer install
+          shopt -s extglob
+          mv !(calendar-feeds|.git|.github) calendar-feeds/
+          zip -r calendar-feeds.zip calendar-feeds/*
+
+      - name: Create Release Artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: calendar-feeds.zip
+          retention-days: 1
+
+      - name: Create Artifact
+        if: startsWith(github.ref, 'refs/heads/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-artifacts
+          path: calendar-feeds.zip
+          retention-days: 7
+
+  release-archive:
+
+    permissions:
+      contents: write
+
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - create-archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Add Tag to Archive
+        run: |
+          mv calendar-feeds.zip  calendar-feeds.${{ github.ref_name }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          draft: false
+          files: |
+            calendar-feeds.${{ github.ref_name }}.zip
+            LICENSE

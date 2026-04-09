@@ -18,7 +18,7 @@
  * License URI: https://interoperable-europe.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt
  * Text Domain: wordpress-calendar-feeds
  * Domain Path: /languages
- * Version: 0.1.0
+ * Version: GGL_PLUGIN_VERSION
  */
 
 /**
@@ -79,7 +79,7 @@ add_action( "parse_request", function ( WP $wp ) {
 
 		$content = ggl_cf__generate_feed_content();
 output:
-		header("Content-type: text/calendar");
+		header("Content-Type: text/calendar");
 		echo $content;
 		die();
 	}
