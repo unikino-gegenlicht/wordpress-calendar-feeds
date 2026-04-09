@@ -1,0 +1,32 @@
+{
+    "version": "0.1.0",
+    "name": "unikino-gegenlicht/wordpress-calendar-feeds",
+    "description": "This WordPress Plugin generates iCalendar Files",
+    "type": "wordpress-plugin",
+    "require": {
+        "eluceo/ical": "^2.15",
+        "spomky-labs/base64url": "^2.0"
+    },
+    "license": "EUPL-1.2",
+    "autoload": {
+        "psr-4": {
+            "UnikinoGegenlicht\\WordpressCalendarFeeds\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jan Eike Suchard",
+            "email": "60288203+dr4hcu5-jan@users.noreply.github.com"
+        }
+    ],
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "phpstan/extension-installer": "^1.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    }
+}
